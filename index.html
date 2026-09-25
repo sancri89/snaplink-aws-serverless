@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SnapLink</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center;
+           font-family: system-ui, sans-serif; background: #f2f3f3; color: #232f3e; }
+    main { width: min(560px, 92vw); background: #fff; padding: 2rem;
+           border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+    form { display: flex; gap: .5rem; flex-wrap: wrap; }
+    input { flex: 1 1 300px; padding: .75rem; font-size: 1rem;
+            border: 1px solid #ccc; border-radius: 8px; }
+    button { padding: .75rem 1.25rem; font-size: 1rem; border: 0; border-radius: 8px;
+             background: #ff9900; font-weight: 600; cursor: pointer; }
+    #result { margin-top: 1.5rem; font-size: 1.1rem; word-break: break-all; }
+    #error { color: #c0392b; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>SnapLink</h1>
+    <p>Paste a long URL and get a short one.</p>
+    <form id="form">
+      <input id="url" type="url" placeholder="https://example.com/very/long/link" required>
+      <button type="submit">Shorten</button>
+    </form>
+    <div id="result"></div>
+    <div id="error"></div>
+  </main>
+
+  <script>
+    // Replace with your API Gateway Invoke URL (no trailing slash)
+    const API_URL = "https://YOUR-API-ID.execute-api.us-east-1.amazonaws.com";
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const result = document.getElementById("result");
+      const error = document.getElementById("error");
+      result.textContent = "";
+      error.textContent = "";
+      try {
+        const res = await fetch(API_URL + "/links", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: document.getElementById("url").value })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Something went wrong");
+        const link = document.createElement("a");
+        link.href = data.short_url;
+        link.textContent = data.short_url;
+        link.target = "_blank";
+        result.appendChild(link);
+      } catch (err) {
+        error.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>
